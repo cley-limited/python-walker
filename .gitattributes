@@ -1,0 +1,4 @@
+# Ignore git infrastructure
+/.git/                  export-ignore
+.gitignore              export-ignore 
+.gitattributes          export-ignore
