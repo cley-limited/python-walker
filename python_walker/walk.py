@@ -89,21 +89,27 @@ def walk_object(root, visitor=lambda o, d, p, n: d,
 
     return walk_into(root, root_parent, root_name, 0)
 
-def walk_modules(visitor=lambda o, d, p, n: d,
+def walk_modules(modules=None,
+                 visitor=lambda o, d, p, n: d,
                  fabricator=lambda o: None, combiner=lambda d1, d2: None,
                  walkers=None, seen=None, maxdepth=100,
                  root_parent=None, root_name=None, for_side_effect=False):
+    if modules is None:
+        modules = sys.modules
+
     seen = set() if not seen else seen
+
     def wlk(name, mod):
         return walk_object(mod, visitor=visitor,
                            fabricator=fabricator, combiner=combiner,
                            walkers=walkers, seen=seen, maxdepth=maxdepth,
                            root_parent=None, root_name=name)
+
     if for_side_effect:
-        for (name, mod) in sys.modules.iteritems():
+        for (name, mod) in modules.iteritems():
             wlk(name, mod)
         return None
     else:
         return [wlk(name, mod)
-                for (name, mod) in sys.modules.iteritems()
+                for (name, mod) in modules.iteritems()
                 if mod]

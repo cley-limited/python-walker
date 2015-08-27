@@ -2,7 +2,7 @@
 """
 
 from types import ModuleType
-from sys import modules
+import sys
 from warnings import warn
 from . import walk_modules, walker_method
 
@@ -18,17 +18,20 @@ def walk__module__(thing):
     # a walker for things with '__module__' attributes.
     if hasattr(thing, '__module__'):
         name = thing.__module__
-        if name in modules and modules[name] is not None:
-            return ((name, modules[name]),) # Python syntax: just kill me now
+        if name in sys.modules and sys.modules[name] is not None:
+            return ((name, sys.modules[name]),) # Oh, Python
         else:
             return None
     else:
         return None
 
-def compute_mdgi(maxdepth=100, check=True):
+def compute_mdgi(modules=None, maxdepth=100, check=True):
     # Walk modules and return a tuple (id2m, id2deps) where id2m maps
     # ids to module instances, and id2deps maps module ids to (frozen)
     # sets of dependency ids.
+
+    if modules is None:
+        modules = sys.modules
     
     # Everything has to work in terms of ids, as Python's hash tables
     # are as deficient as you would expect: lots of things are not
@@ -84,8 +87,9 @@ def compute_mdgi(maxdepth=100, check=True):
             # not a module, just return unchanged
             return deps
     
-    walk_modules(visitor=visit, fabricator=fabricate, combiner=combine,
-                 maxdepth=maxdepth, )
+    walk_modules(modules=modules,
+                 visitor=visit, fabricator=fabricate, combiner=combine,
+                 maxdepth=maxdepth)
     
     if check:
         # every module's id should be in the maps, and every entry in
@@ -103,11 +107,11 @@ def compute_mdgi(maxdepth=100, check=True):
     
     return (id2module, id2deps)
 
-def compute_mdg(id2module=None, id2deps=None):
+def compute_mdg(modules=None, id2module=None, id2deps=None):
     assert ((id2module and id2deps)
             or (id2module is None
                 and id2deps is None)), "neither or both, not one"
     if id2module is None or id2deps is None:
-        (id2module, id2deps) = compute_mdgi()
+        (id2module, id2deps) = compute_mdgi(modules=modules)
     return tuple(((id2module[i], tuple((id2module[d] for d in ds)))
                  for (i, ds) in id2deps.iteritems()))
