@@ -3,10 +3,11 @@
 
 import sys
 from . import walker
+from .low import Limitation
 
 __all__ = ['TooDeep', 'walk_object', 'walk_modules']
 
-class TooDeep(Exception):
+class TooDeep(Limitation):
     def __init__(self, what, depth=None):
         self.depth = depth
         self.what = what
