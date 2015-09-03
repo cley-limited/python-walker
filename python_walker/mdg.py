@@ -8,11 +8,6 @@ from . import walk_modules, walker_method
 
 __all__ = ['compute_mdgi', 'compute_mdg']
 
-# Checks are done by assertions: they had better be enabled
-#
-if not __debug__:
-    warn("assertions are disabled: why?", RuntimeWarning)
-
 @walker_method()
 def walk__module__(thing):
     # a walker for things with '__module__' attributes.

@@ -27,8 +27,10 @@
 #
 # would be false if this was Lisp)
 #
-# Note that mdg is *not* imported
+# Note that mdg and mt are *not* imported
 #
+from . import low
+from .low import *
 from . import walker
 from .walker import *
 from . import walk
