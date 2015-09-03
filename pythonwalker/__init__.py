@@ -23,7 +23,7 @@
 # of stuff and then reexport it, although this is at object level not
 # symbol level:
 #
-#  (eq 'python_walker.walk_object 'python_walker.walk.walk_object)
+#  (eq 'pythonwalker.walk_object 'pythonwalker.walk.walk_object)
 #
 # would be false if this was Lisp)
 #
