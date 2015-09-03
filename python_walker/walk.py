@@ -38,8 +38,10 @@ def walk_object(root, visitor=lambda o, d, p, n: d,
     # For the root object the root_parent and root_name variables are
     # used as the parent and name-in-parent arguments.
     #
-    # the seen argument is a set containing the id()s of object which
-    # should be considered to have already been seen, or None.
+    # The seen argument is a set containing the id()s of object which
+    # should be considered to have already been seen, or None.  The
+    # ids of objects are used because very many objects are not
+    # hashable, although their ids are (hello, Earth to Python?).
     #
     # maxdepth says how deep to go before raising a TooDeep exception.
     #
