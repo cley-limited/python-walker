@@ -4,12 +4,14 @@
 import imp
 import sys
 from os.path import splitext, isabs, abspath
+from types import ModuleType
 from .low import Badness
 
 __all__ = ['find_module_recursively',
            'module_attributions',
            'module_attributions_ok_p',
-           'report_module_attributions']
+           'report_module_attributions',
+           'clean_modules']
 
 builtins = frozenset(sys.builtin_module_names)
 
@@ -89,18 +91,21 @@ def find_module_recursively(n, path=None):
 def module_attributions(modules=None):
     # sort out attributions for modules
     #
-    # Return a tuple of 5 objects:
+    # Return a tuple of 6 objects:
     # - a map from name to base (see below) for loaded modules
     #   this can be many to one (modules can have multiple names)
     # - a map from name to package dir for packages (also many to one)
-    # - a set of names of weird modules: these don't have files and
+    # - a list of names of weird modules: these don't have files and
     #   are typically built-in modules like sys
+    # - a list of names of bogons: things which aren't modules at all
     # - a map of name to base (below) for unknown modules: they have files,
     #   but we can't find a module object.
     # - a list of names of modules we can't find anything about at all.
     #
     # If the last two elements of the tuple have anything in them then
-    # there's probably trouble
+    # there's probably trouble.  The bogon list often does have things
+    # in it because, well, who would expect something called
+    # sys.modules to have only modules in it?
     #
     # modules needs to implement iteritems() and agree with the
     # semantics of a dict for it (so the 0th elts of the tuples must
@@ -128,20 +133,26 @@ def module_attributions(modules=None):
     bases = set()               # bases we have seen
     hopeless = []               # hopeless cases
     weird = []                  # names of weird modules
+    bogus = []                  # names of bogons
 
     missed = []                # modules missed in first pass
 
     for (name, mod) in modules.iteritems():
         if mod:
-            # module is loaded
-            if hasattr(mod, '__file__'):
-                # normal module
-                base = pathbase(mod.__file__)
-                bases.add(base)
-                lmap[name] = base
+            # There is something there
+            if isinstance(mod, ModuleType):
+                # it's a module
+                if hasattr(mod, '__file__'):
+                    # normal module
+                    base = pathbase(mod.__file__)
+                    bases.add(base)
+                    lmap[name] = base
+                else:
+                    # a weird module
+                    weird.append(name)
             else:
-                # a weird module
-                weird.append(name)
+                # not a module at all (yes, this can happen)
+                bogus.append(name)
         else:
             # missed on first pass
             missed.append(name)
@@ -170,7 +181,7 @@ def module_attributions(modules=None):
         else:
             # got nothing at all
             hopeless.append(name)
-    return (lmap, pmap, weird, umap, hopeless)
+    return (lmap, pmap, weird, bogus, umap, hopeless)
 
 def module_attributions_ok_p(modules=None):
     # are the module attributuons OK?
@@ -192,7 +203,7 @@ def report_module_attributions(modules=None, out=sys.stdout):
         cpts.reverse()
         return ".".join(cpts)
 
-    (lmap, pmap, weird, umap, hopeless) = module_attributions(modules)
+    (lmap, pmap, weird, bogus, umap, hopeless) = module_attributions(modules)
 
     print("* Known modules")
     for n in sorted(lmap.keys(), key=lem):
@@ -200,16 +211,27 @@ def report_module_attributions(modules=None, out=sys.stdout):
     print("* Known packages")
     for n in sorted(pmap.keys(), key=lem):
         print("  {} -> {}".format(n, pmap[n]))
-    print("* Weird module names")
+    print("* Builtin modules")
     for n in sorted(weird, key=lem):
         print("  {}".format(n))
     if len(umap) > 0:
         print("* Unloaded modules")
         for n in sorted(umap.keys(), key=lem):
             print("  {} -> {}".format(n, umap[n]))
+    if len(bogus) > 0:
+        print("* Bogus modules")
+        for n in sorted(bogus, key=lem):
+            print("  {}".format(n))
     if len(hopeless) > 0:
         print("* Unfound modules")
         for n in sorted(hopeless, key=lem):
             print("  {}".format(n))
     if (len(umap) > 0 or len(hopeless) > 0):
         print("Trouble")
+
+def clean_modules(modules=sys.modules):
+    # Return a clean dict of modules: a dict mapping from names to
+    # things which are modules.
+    #
+    return {n: m for (n, m) in modules.iteritems()
+            if m and isinstance(m, ModuleType)}
