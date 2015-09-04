@@ -88,7 +88,7 @@ def find_module_recursively(n, path=None):
     return loop(0, path if path is not None else sys.path)
 
 
-def module_attributions(modules=None):
+def module_attributions(modules=sys.modules):
     # sort out attributions for modules
     #
     # Return a tuple of 6 objects:
@@ -111,8 +111,6 @@ def module_attributions(modules=None):
     # semantics of a dict for it (so the 0th elts of the tuples must
     # be unique, which this fn quietly assumes)
     #
-    if modules is None:
-        modules = sys.modules
 
     def pathbase(path):
         # the base of a path is an absolute version of it, without the

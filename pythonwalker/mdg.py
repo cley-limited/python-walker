@@ -25,12 +25,9 @@ def walk__module__(thing):
     else:
         return None
 
-def compute_mdg(modules=None, maxdepth=100, check=True):
+def compute_mdg(modules=sys.modules, maxdepth=100, check=True):
     # Walk modules and return a dict which maps from modules to
     # (frozen) sets of dependencies of them.
-
-    if modules is None:
-        modules = sys.modules
 
     # Modules are hashable, surprisingly, and we have checked this
     # above.  So we don't need id-related hair
