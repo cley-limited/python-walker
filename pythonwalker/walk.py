@@ -2,7 +2,7 @@
 """
 
 import sys
-from . import walker
+from .walker import get_fallback_walker_method_list
 from .low import Limitation
 
 __all__ = ['TooDeep', 'walk_object', 'walk_modules']
@@ -59,7 +59,7 @@ def walk_object(root, visitor=lambda o, d, p, n: d,
     # forever.
     #
     if walkers is None:
-        walkers = walker.walker_methods
+        walkers = get_fallback_walker_method_list()
 
     if seen is None:
         seen = set()
