@@ -83,7 +83,7 @@ def compute_mdg(modules=sys.modules, maxdepth=100, check=True):
         # Do some sanity checks: every module should be on the LHS of
         # a set, and no module should depend on itself.
         for (n, m) in modules.iteritems():
-            if m:
+            if isinstance(m, ModuleType):
                 assert m in mdeps, "{} missing from map".format(m.__name__)
         for (m, d) in mdeps.iteritems():
             assert m not in d, "{} has a dependency loop".format(m.__name__)

@@ -217,7 +217,7 @@ def report_module_attributions(modules=None, out=sys.stdout):
         for n in sorted(umap.keys(), key=lem):
             print("  {} -> {}".format(n, umap[n]))
     if len(bogus) > 0:
-        print("* Bogus modules")
+        print("* Things which are not modules")
         for n in sorted(bogus, key=lem):
             print("  {}".format(n))
     if len(hopeless) > 0:
