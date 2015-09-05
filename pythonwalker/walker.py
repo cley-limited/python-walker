@@ -27,14 +27,16 @@ Indeed it's not really clear that the whole notion of a default list
 of walker methods is right.
 """
 
-__all__ = ['walker_method', 'walker_methods']
+__all__ = ['walker_method', 'walker_methods', 'make_walker_method_list']
 
 walker_methods = []
 
-def walker_method(for_class=object):
+def walker_method(for_class=object, methods_list=None):
     """A decorator to add something to the default walker methods,
     selecting on class
     """
+    if methods_list is None:    # handle early binding of defaults
+        methods_list = walker_methods
     def wrap(walker):
         # wrap a walker with a function which checks the type of the
         # thing to be walked against for_class, and calls the walker
@@ -66,3 +68,22 @@ def walk_dict(thing):
         return thing.__dict__.iteritems()
     else:
         return None
+
+_default_walker_methods = [m for m in walker_methods] # make sure to copy
+
+def make_walker_method_list(defaults=False, source=[]):
+    # Return a fresh walker method list, copying source if given, and
+    # adding defaults, uniquely, if given (even to a provided list).
+    #
+    l = [m for m in source]
+    if defaults:
+        if len(l) == 0:
+            return [m for m in _default_walker_methods]
+        else:
+            for m in _default_walker_methods:
+                # I know this is quadratic: walker method lists are short.
+                if m not in l:
+                    l.append(m)
+            return l
+    else:
+        return l
