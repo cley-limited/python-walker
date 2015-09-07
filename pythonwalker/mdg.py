@@ -4,7 +4,7 @@
 from types import ModuleType
 import sys
 from warnings import warn
-from . import walk_modules, walker_method
+from . import walk_modules, walker_method, make_walker_method_list
 
 __all__ = ['compute_mdg']
 
@@ -13,7 +13,9 @@ __all__ = ['compute_mdg']
 #
 assert hasattr(sys, '__hash__'), "Modules need to be hashable"
 
-@walker_method()
+mdg_methods = make_walker_method_list(defaults=True)
+
+@walker_method(methods_list=mdg_methods)
 def walk__module__(thing):
     # a walker for things with '__module__' attributes.
     if hasattr(thing, '__module__'):
@@ -75,7 +77,7 @@ def compute_mdg(modules=sys.modules, maxdepth=100, check=True):
             # not a module, just return unchanged
             return deps
     
-    walk_modules(modules=modules,
+    walk_modules(modules=modules, walkers=mdg_methods,
                  visitor=visit, fabricator=fabricate, combiner=combine,
                  maxdepth=maxdepth)
     
